@@ -1,8 +1,9 @@
-import 'package:anglers_spot/features/plan/view/result/helpers/score_helper.dart';
+import 'package:anglers_spot/features/plan/view/result/helpers/icon_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../helpers/score_helper.dart';
 import '../widgets/section_card.dart';
 
 class FishingWindowsSection extends StatelessWidget {
@@ -16,77 +17,88 @@ class FishingWindowsSection extends StatelessWidget {
         (payload['hourly'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final daily =
         (payload['daily'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final astronomy =
+        (payload['astronomy'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final tides =
+        (payload['tides'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
     final dfh = DateFormat('EEE, MMM d');
     final tf = DateFormat('h:mm a');
 
     if (hours.isEmpty) return const SizedBox.shrink();
 
-    // Filter only future windows
     final windows = calculateBestWindows(
       hours,
       daily,
-    ).where((h) => h.time.isAfter(DateTime.now())).toList();
+      astronomy,
+      tides,
+    ).where((h) => scoreLabel(h.score) != "Good").toList();
+
+    final grouped = groupConsecutiveWindows(windows);
+
+    if (windows.isEmpty) {
+      return SectionCard(
+        title: "Best Fishing Windows",
+        icon: LucideIcons.fish,
+        children: const [
+          Padding(
+            padding: EdgeInsets.all(8),
+            child: Text(
+              "No optimal fishing windows available during this period. "
+              "Check tide, moon, or weather updates.",
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+        ],
+      );
+    }
 
     return SectionCard(
       title: "Best Fishing Windows",
       icon: LucideIcons.fish,
-      children: windows.isEmpty
-          ? [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const Icon(
-                      LucideIcons.alertTriangle,
-                      color: Colors.redAccent,
-                      size: 32,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "No good fishing windows available right now.",
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.redAccent,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "This may be due to poor conditions (bad weather, rough seas, or typhoon nearby).",
-                      style: Theme.of(context).textTheme.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ]
-          : windows.map((h) {
-              final label = scoreLabel(h.score);
-              final color = scoreColor(h.score);
-              return ListTile(
-                leading: const Icon(LucideIcons.clock),
-                title: Text("${dfh.format(h.time)} • ${tf.format(h.time)}"),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      h.score.toStringAsFixed(0),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+      children: grouped.map((w) {
+        final dfh = DateFormat('EEE, MMM d');
+        final tf = DateFormat('h:mm a');
+
+        final timeText = w.start == w.end
+            ? "${dfh.format(w.start)} • ${tf.format(w.start)}"
+            : "${dfh.format(w.start)} • ${tf.format(w.start)} - ${tf.format(w.end)}";
+
+        return ListTile(
+          leading: Icon(
+            fishingTimeIcon(
+              w.start,
+              sunrise: _findSunriseForDay(daily, w.start),
+              sunset: _findSunsetForDay(daily, w.start),
+            ),
+            color: Colors.teal,
+          ),
+          title: Text(timeText),
+          trailing: Text(
+            w.label,
+            style: TextStyle(
+              color: scoreColor((w.label == "Best") ? 90 : 75),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
+}
+
+DateTime? _findSunriseForDay(List<Map<String, dynamic>> daily, DateTime day) {
+  final entry = daily.firstWhere(
+    (d) => DateTime.parse(d['date']).day == day.day,
+    orElse: () => {},
+  );
+  return entry.isNotEmpty ? DateTime.tryParse(entry['sunrise'] ?? '') : null;
+}
+
+DateTime? _findSunsetForDay(List<Map<String, dynamic>> daily, DateTime day) {
+  final entry = daily.firstWhere(
+    (d) => DateTime.parse(d['date']).day == day.day,
+    orElse: () => {},
+  );
+  return entry.isNotEmpty ? DateTime.tryParse(entry['sunset'] ?? '') : null;
 }
