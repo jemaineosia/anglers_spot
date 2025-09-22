@@ -1,3 +1,4 @@
+import 'package:anglers_spot/core/utils/string_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -15,7 +16,7 @@ class TripDetailsSection extends StatelessWidget {
       icon: LucideIcons.mapPin,
       children: [
         Text(
-          "📍 Location: ${payload['locationName'] ?? '${payload['lat']}, ${payload['lon']}'}",
+          "📍 Location: ${payload['locationName'] != null ? capitalizeEachWord(payload['locationName']) : '${payload['lat']}, ${payload['lon']}'}",
         ),
         Text("📅 Dates: ${payload['startDate']} → ${payload['endDate']}"),
       ],
