@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/forecast_provider.dart';
-import 'result_screen.dart';
+import 'result/result_screen.dart';
 
 class ForecastResultPage extends ConsumerWidget {
   final ForecastParams params;
