@@ -50,34 +50,49 @@ class FishingWindowsSection extends StatelessWidget {
       );
     }
 
+    // group by day
+    final dfDay = DateFormat('EEE, MMM d');
+    final groupedByDay = <String, List<dynamic>>{};
+    for (final w in grouped) {
+      final dayKey = dfDay.format(w.start);
+      groupedByDay.putIfAbsent(dayKey, () => []).add(w);
+    }
+
     return SectionCard(
       title: "Best Fishing Windows",
       icon: LucideIcons.fish,
-      children: grouped.map((w) {
-        final dfh = DateFormat('EEE, MMM d');
-        final tf = DateFormat('h:mm a');
-
-        final timeText = w.start == w.end
-            ? "${dfh.format(w.start)} • ${tf.format(w.start)}"
-            : "${dfh.format(w.start)} • ${tf.format(w.start)} - ${tf.format(w.end)}";
-
-        return ListTile(
-          leading: Icon(
-            fishingTimeIcon(
-              w.start,
-              sunrise: _findSunriseForDay(daily, w.start),
-              sunset: _findSunsetForDay(daily, w.start),
-            ),
-            color: Colors.teal,
+      children: groupedByDay.entries.map((entry) {
+        return ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+          title: Text(
+            entry.key,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
-          title: Text(timeText),
-          trailing: Text(
-            w.label,
-            style: TextStyle(
-              color: scoreColor((w.label == "Best") ? 90 : 75),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          children: entry.value.map((w) {
+            final tf = DateFormat('h:mm a');
+            final timeText = w.start == w.end
+                ? tf.format(w.start)
+                : "${tf.format(w.start)} - ${tf.format(w.end)}";
+
+            return ListTile(
+              leading: Icon(
+                fishingTimeIcon(
+                  w.start,
+                  sunrise: _findSunriseForDay(daily, w.start),
+                  sunset: _findSunsetForDay(daily, w.start),
+                ),
+                color: Colors.teal,
+              ),
+              title: Text(timeText),
+              trailing: Text(
+                w.label,
+                style: TextStyle(
+                  color: scoreColor((w.label == "Best") ? 90 : 75),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
+          }).toList(),
         );
       }).toList(),
     );
