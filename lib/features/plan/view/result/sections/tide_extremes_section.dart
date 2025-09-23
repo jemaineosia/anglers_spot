@@ -16,6 +16,14 @@ class TideExtremesSection extends StatelessWidget {
     final astronomy =
         (payload['astronomy'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
+    // Get today’s astronomy data if available
+    final todayAstro = astronomy.isNotEmpty ? astronomy.first : null;
+    final moonPhase = astronomy.isNotEmpty
+        ? (astronomy.first['moon_phase'] ?? "").toString().toUpperCase()
+        : "UNKNOWN";
+    final moonrise = todayAstro?['moonrise'] ?? "-";
+    final moonset = todayAstro?['moonset'] ?? "-";
+
     if (tides.isEmpty) return const SizedBox.shrink();
 
     final tf = DateFormat('h:mm a');
@@ -37,6 +45,16 @@ class TideExtremesSection extends StatelessWidget {
       title: "Tide Extremes",
       icon: LucideIcons.waves,
       children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            "🌙 Moon Phase: $moonPhase",
+            style: const TextStyle(
+              fontStyle: FontStyle.italic,
+              color: Colors.blueGrey,
+            ),
+          ),
+        ),
         Table(
           border: TableBorder.symmetric(
             inside: BorderSide(color: Colors.grey.shade200),
@@ -52,7 +70,7 @@ class TideExtremesSection extends StatelessWidget {
                     tf,
                     strongThreshold,
                     weakThreshold,
-                    astronomy,
+                    moonPhase,
                   ),
                   if (i + 1 < tides.length)
                     _buildTideCell(
@@ -61,7 +79,7 @@ class TideExtremesSection extends StatelessWidget {
                       tf,
                       strongThreshold,
                       weakThreshold,
-                      astronomy,
+                      moonPhase,
                     ),
                 ],
               ),
@@ -77,7 +95,7 @@ class TideExtremesSection extends StatelessWidget {
     DateFormat tf,
     double strongThreshold,
     double weakThreshold,
-    List<Map<String, dynamic>> astronomy,
+    String moonPhase,
   ) {
     final tide = tides[index];
     final type = tide['type'];
@@ -92,15 +110,12 @@ class TideExtremesSection extends StatelessWidget {
       diff = (nextHeight - height).abs();
     }
 
-    // Apply moon phase multiplier
-    final moonPhase = astronomy.isNotEmpty
-        ? astronomy.first['moon_phase'] ?? ""
-        : "";
+    // Moon multiplier
     double multiplier = 1.0;
-    if (moonPhase.contains("New") || moonPhase.contains("Full")) {
-      multiplier = 1.3; // stronger currents
-    } else if (moonPhase.contains("Quarter")) {
-      multiplier = 0.7; // weaker currents
+    if (moonPhase.contains("NEW") || moonPhase.contains("FULL")) {
+      multiplier = 1.3; // stronger currents (spring tide)
+    } else if (moonPhase.contains("QUARTER")) {
+      multiplier = 0.7; // weaker currents (neap tide)
     }
 
     final adjustedDiff = diff * multiplier;
@@ -111,11 +126,11 @@ class TideExtremesSection extends StatelessWidget {
     IconData currentIcon;
 
     if (adjustedDiff >= strongThreshold) {
-      currentLabel = "🌊 Strong Current (Spring Tide)";
+      currentLabel = "🌊 Strong Current";
       currentColor = Colors.blue;
       currentIcon = LucideIcons.activity;
     } else if (adjustedDiff <= weakThreshold) {
-      currentLabel = "💤 Weak Current (Neap Tide)";
+      currentLabel = "💤 Weak Current";
       currentColor = Colors.grey;
       currentIcon = LucideIcons.moon;
     } else {

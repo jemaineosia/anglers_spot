@@ -85,9 +85,9 @@ List<FishingWindow> calculateFishingScores({
           final h2 = (nearest[i + 1]['height'] as num?)?.toDouble();
           if (h1 != null && h2 != null) {
             final diff = (h2 - h1).abs();
-            if (diff > 1.5)
+            if (diff > 1.5) {
               tideBonus = 15;
-            else if (diff > 0.8)
+            } else if (diff > 0.8)
               tideBonus = 10;
             else
               tideBonus = 3;

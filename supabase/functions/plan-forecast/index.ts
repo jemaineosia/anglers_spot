@@ -56,10 +56,10 @@ serve(async (req: Request): Promise<Response> => {
 
   const forecastUrl =
     `${base}?latitude=${lat}&longitude=${lon}&hourly=${hourly}&daily=sunrise,sunset&timezone=auto&start_date=${startDate}&end_date=${endDate}`;
-  const astroUrl =
-    `https://api.open-meteo.com/v1/astronomy?latitude=${lat}&longitude=${lon}&daily=moon_phase,moonrise,moonset&timezone=auto&start_date=${startDate}&end_date=${endDate}`;
+  const IPGEO_KEY = "bba731713f5543e287f6848f8a1502be";
+  const astroUrl = `https://api.ipgeolocation.io/astronomy?apiKey=${IPGEO_KEY}&lat=${lat}&long=${lon}&date=${startDate}`;
 
-  const WORLD_TIDES_API_KEY = Deno.env.get("WORLD_TIDES_API_KEY");
+  const WORLD_TIDES_API_KEY = "a198676f-3b41-4d09-ad7c-6b8362af7f7a";
   const tideUrl = WORLD_TIDES_API_KEY
     ? `https://www.worldtides.info/api/v3?extremes&lat=${lat}&lon=${lon}&start=${startDate}&end=${endDate}&key=${WORLD_TIDES_API_KEY}`
     : null;
@@ -103,14 +103,18 @@ serve(async (req: Request): Promise<Response> => {
     }));
 
     // ✅ normalize astronomy if available
-    const astroDaily = astronomy?.daily?.time
-      ? astronomy.daily.time.map((d: string, i: number) => ({
-        date: d,
-        moon_phase: astronomy.daily.moon_phase?.[i] ?? null,
-        moonrise: astronomy.daily.moonrise?.[i] ?? null,
-        moonset: astronomy.daily.moonset?.[i] ?? null,
-      }))
-      : [];
+    const astroDaily = astronomy
+  ? [
+      {
+        date: astronomy.date ?? startDate,
+        moon_phase: astronomy.moon_phase ?? null,
+        moonrise: astronomy.moonrise ?? null,
+        moonset: astronomy.moonset ?? null,
+        sunrise: astronomy.sunrise ?? null,
+        sunset: astronomy.sunset ?? null,
+      },
+    ]
+  : [];
 
     // normalize tides
     let tideEvents: TideEvent[] = [];
@@ -133,11 +137,13 @@ serve(async (req: Request): Promise<Response> => {
       tides: tideEvents,
       source: {
         weather: "open-meteo.com",
-        astronomy: astronomy ? "open-meteo.com/astronomy" : "none",
+        astronomy: astronomy ? "ipgeolocation.io" : "none",
         tides: WORLD_TIDES_API_KEY ? "worldtides.info" : "none",
       },
       generated_at: new Date().toISOString(),
     };
+
+    console.log("Astronomy API response:", astronomy);
 
     return new Response(JSON.stringify(payload), {
       headers: {
