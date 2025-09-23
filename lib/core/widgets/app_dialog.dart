@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../navigation/app_navigator.dart';
+
 enum DialogType { error, warning, info }
 
 class AppDialog {
-  static void show(
-    BuildContext context, {
+  static void show({
     required String message,
     DialogType type = DialogType.info,
   }) {
+    final ctx = AppNavigator.context;
+    if (ctx == null) return;
+
     final title = switch (type) {
       DialogType.error => "Error",
       DialogType.warning => "Warning",
@@ -21,8 +25,8 @@ class AppDialog {
     };
 
     showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
+      context: ctx,
+      builder: (context) => AlertDialog(
         title: Row(
           children: [
             Icon(icon, color: Theme.of(context).colorScheme.primary),
@@ -33,7 +37,7 @@ class AppDialog {
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text("OK"),
           ),
         ],

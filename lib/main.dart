@@ -1,3 +1,4 @@
+import 'package:anglers_spot/core/navigation/app_navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -23,6 +24,7 @@ class AnglersSpotApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Anglers Spot',
+      navigatorKey: AppNavigator.navigatorKey,
       theme: ThemeData(useMaterial3: true),
       home: const PlannerScreen(),
     );
