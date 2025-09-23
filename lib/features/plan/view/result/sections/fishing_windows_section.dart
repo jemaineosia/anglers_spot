@@ -22,9 +22,6 @@ class FishingWindowsSection extends StatelessWidget {
     final tides =
         (payload['tides'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
-    final dfh = DateFormat('EEE, MMM d');
-    final tf = DateFormat('h:mm a');
-
     if (hours.isEmpty) return const SizedBox.shrink();
 
     final windows = calculateBestWindows(

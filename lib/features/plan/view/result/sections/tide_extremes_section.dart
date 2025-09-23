@@ -17,12 +17,9 @@ class TideExtremesSection extends StatelessWidget {
         (payload['astronomy'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
     // Get today’s astronomy data if available
-    final todayAstro = astronomy.isNotEmpty ? astronomy.first : null;
     final moonPhase = astronomy.isNotEmpty
         ? (astronomy.first['moon_phase'] ?? "").toString().toUpperCase()
         : "UNKNOWN";
-    final moonrise = todayAstro?['moonrise'] ?? "-";
-    final moonset = todayAstro?['moonset'] ?? "-";
 
     if (tides.isEmpty) return const SizedBox.shrink();
 
