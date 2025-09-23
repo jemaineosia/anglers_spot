@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/safe_call.dart';
+import '../../../core/widgets/app_dialog.dart';
+import '../../../core/widgets/app_loader.dart';
 import '../services/forecast_service.dart';
 
 class ForecastParams {
@@ -31,15 +34,34 @@ class ForecastParams {
   int get hashCode => Object.hash(lat, lon, start, end, locationName);
 }
 
+final forecastServiceProvider = Provider((ref) => ForecastService());
+
 final forecastProvider = FutureProvider.autoDispose
     .family<Map<String, dynamic>, ForecastParams>((ref, params) async {
-      final forecast = await getForecast(
-        lat: params.lat,
-        lon: params.lon,
-        start: params.start,
-        end: params.end,
+      AppLoader.show(message: "Fetching forecast...");
+
+      final result = await safeCall(() async {
+        final service = ref.read(forecastServiceProvider);
+        return await service.getForecast(
+          lat: params.lat,
+          lon: params.lon,
+          start: params.start,
+          end: params.end,
+        );
+      });
+
+      AppLoader.hide();
+
+      if (result == null) {
+        throw Exception(
+          "Failed to load forecast",
+        ); // let error branch handle it
+      }
+
+      AppDialog.showSnackBar(
+        message: "Forecast loaded successfully",
+        type: DialogType.success,
       );
 
-      // Attach the location name into the payload so ResultScreen can show it
-      return {...forecast, 'locationName': params.locationName};
+      return {...result, 'locationName': params.locationName};
     });
