@@ -65,37 +65,79 @@ class FishingWindowsSection extends StatelessWidget {
       title: "Best Fishing Windows",
       icon: LucideIcons.fish,
       children: groupedByDay.entries.map((entry) {
-        return ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 8),
-          title: Text(
-            entry.key,
-            style: Theme.of(context).textTheme.titleMedium,
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          children: entry.value.map((w) {
-            final tf = DateFormat('h:mm a');
-            final timeText = w.start == w.end
-                ? tf.format(w.start)
-                : "${tf.format(w.start)} - ${tf.format(w.end)}";
+          elevation: 1,
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
+            childrenPadding: const EdgeInsets.only(
+              left: 12,
+              right: 12,
+              bottom: 8,
+            ),
+            collapsedShape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            backgroundColor: Colors.grey.shade50,
+            collapsedBackgroundColor: Colors.grey.shade100,
+            title: Text(
+              entry.key,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            leading: const Icon(
+              Icons.calendar_today,
+              size: 20,
+              color: Colors.teal,
+            ),
+            trailing: const Icon(Icons.expand_more, color: Colors.teal),
+            children: entry.value.map((w) {
+              final tf = DateFormat('h:mm a');
+              final timeText = w.start == w.end
+                  ? tf.format(w.start)
+                  : "${tf.format(w.start)} - ${tf.format(w.end)}";
 
-            return ListTile(
-              leading: Icon(
-                fishingTimeIcon(
-                  w.start,
-                  sunrise: _findSunriseForDay(daily, w.start),
-                  sunset: _findSunsetForDay(daily, w.start),
+              return ListTile(
+                leading: Icon(
+                  fishingTimeIcon(
+                    w.start,
+                    sunrise: _findSunriseForDay(daily, w.start),
+                    sunset: _findSunsetForDay(daily, w.start),
+                  ),
+                  color: Colors.teal,
                 ),
-                color: Colors.teal,
-              ),
-              title: Text(timeText),
-              trailing: Text(
-                w.label,
-                style: TextStyle(
-                  color: scoreColor((w.label == "Best") ? 90 : 75),
-                  fontWeight: FontWeight.bold,
+                title: Text(timeText),
+                trailing: Chip(
+                  label: Text(
+                    w.label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  backgroundColor: (w.label == "Best")
+                      ? Colors.green
+                      : (w.label == "Better")
+                      ? Colors.orange
+                      : Colors.blueGrey,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 0,
+                  ),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         );
       }).toList(),
     );
