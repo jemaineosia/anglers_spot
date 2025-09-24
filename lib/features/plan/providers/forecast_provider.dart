@@ -1,3 +1,4 @@
+import 'package:anglers_spot/core/models/environment_type.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/forecast_service.dart';
@@ -8,6 +9,7 @@ class ForecastParams {
   final DateTime start;
   final DateTime end;
   final String locationName;
+  final EnvironmentType environment;
 
   const ForecastParams({
     required this.lat,
@@ -15,6 +17,7 @@ class ForecastParams {
     required this.start,
     required this.end,
     required this.locationName,
+    required this.environment,
   });
 
   @override
@@ -25,10 +28,12 @@ class ForecastParams {
           lon == other.lon &&
           start == other.start &&
           end == other.end &&
-          locationName == other.locationName;
+          locationName == other.locationName &&
+          environment == other.environment;
 
   @override
-  int get hashCode => Object.hash(lat, lon, start, end, locationName);
+  int get hashCode =>
+      Object.hash(lat, lon, start, end, locationName, environment);
 }
 
 final forecastProvider = FutureProvider.autoDispose

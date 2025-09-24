@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../../core/models/environment_type.dart';
 import '../providers/forecast_provider.dart';
 import '../services/geocoding_service.dart';
 import 'forecast_result_page.dart';
+
+enum SearchMode { locationName, coordinates }
 
 class PlannerScreen extends ConsumerStatefulWidget {
   const PlannerScreen({super.key});
@@ -16,12 +19,19 @@ class PlannerScreen extends ConsumerStatefulWidget {
 class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   DateTimeRange? _range;
   final _location = TextEditingController();
+  final _lat = TextEditingController();
+  final _lon = TextEditingController();
+
+  SearchMode _mode = SearchMode.locationName;
+  EnvironmentType _environment = EnvironmentType.beach;
 
   bool _loading = false;
 
   @override
   void dispose() {
     _location.dispose();
+    _lat.dispose();
+    _lon.dispose();
     super.dispose();
   }
 
@@ -69,32 +79,57 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   }
 
   Future<void> _generate() async {
-    if (_range == null || _location.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pick dates and enter a location')),
-      );
+    if (_range == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Pick dates first')));
       return;
     }
 
     setState(() => _loading = true);
     try {
-      final svc = GeocodingService();
-      final coords = await svc.fetchCoordinates(_location.text.trim());
+      double lat, lon;
+      String locationName;
 
-      if (coords == null) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Location not found')));
-        return;
+      if (_mode == SearchMode.locationName) {
+        if (_location.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Enter a location name')),
+          );
+          return;
+        }
+        final svc = GeocodingService();
+        final coords = await svc.fetchCoordinates(_location.text.trim());
+
+        if (coords == null) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Location not found')));
+          return;
+        }
+        lat = coords['lat']!;
+        lon = coords['lon']!;
+        locationName = _location.text.trim();
+      } else {
+        if (_lat.text.trim().isEmpty || _lon.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Enter both latitude and longitude')),
+          );
+          return;
+        }
+        lat = double.tryParse(_lat.text.trim()) ?? 0;
+        lon = double.tryParse(_lon.text.trim()) ?? 0;
+        locationName = "${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}";
       }
 
       final params = ForecastParams(
-        lat: coords['lat']!,
-        lon: coords['lon']!,
+        lat: lat,
+        lon: lon,
         start: _range!.start,
         end: _range!.end,
-        locationName: _location.text.trim(),
+        locationName: locationName,
+        environment: _environment, // pass environment
       );
 
       if (!mounted) return;
@@ -131,21 +166,107 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Location input
-          TextField(
-            controller: _location,
-            decoration: const InputDecoration(
-              labelText: 'Location (e.g. Bedok Jetty)',
-              border: OutlineInputBorder(),
-            ),
+          // Mode selector
+          Row(
+            children: [
+              Expanded(
+                child: RadioListTile<SearchMode>(
+                  title: const Text("Location name"),
+                  value: SearchMode.locationName,
+                  groupValue: _mode,
+                  onChanged: (SearchMode? val) =>
+                      setState(() => _mode = val ?? SearchMode.locationName),
+                ),
+              ),
+              Expanded(
+                child: RadioListTile<SearchMode>(
+                  title: const Text("Coordinates"),
+                  value: SearchMode.coordinates,
+                  groupValue: _mode,
+                  onChanged: (SearchMode? val) =>
+                      setState(() => _mode = val ?? SearchMode.coordinates),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
 
-          // Use current location
-          TextButton.icon(
-            icon: const Icon(Icons.my_location),
-            label: const Text('Use my current location'),
-            onPressed: _useCurrentLocation,
+          // Location input or coordinates input
+          if (_mode == SearchMode.locationName) ...[
+            TextField(
+              controller: _location,
+              decoration: const InputDecoration(
+                labelText: 'Location (e.g. Bedok Jetty)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              icon: const Icon(Icons.my_location),
+              label: const Text('Use my current location'),
+              onPressed: _useCurrentLocation,
+            ),
+          ] else ...[
+            TextField(
+              controller: _lat,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Latitude',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _lon,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Longitude',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 16),
+
+          // Environment selector
+          const Text(
+            "Fishing Environment",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          RadioListTile<EnvironmentType>(
+            title: const Text("Beach / Shoreline"),
+            value: EnvironmentType.beach,
+            groupValue: _environment,
+            onChanged: (EnvironmentType? val) =>
+                setState(() => _environment = val ?? EnvironmentType.beach),
+          ),
+          RadioListTile<EnvironmentType>(
+            title: const Text("Rocks / Jetty / Pier"),
+            value: EnvironmentType.rocks,
+            groupValue: _environment,
+            onChanged: (EnvironmentType? val) =>
+                setState(() => _environment = val ?? EnvironmentType.rocks),
+          ),
+          RadioListTile<EnvironmentType>(
+            title: const Text("Island"),
+            value: EnvironmentType.island,
+            groupValue: _environment,
+            onChanged: (EnvironmentType? val) =>
+                setState(() => _environment = val ?? EnvironmentType.island),
+          ),
+          RadioListTile<EnvironmentType>(
+            title: const Text("Estuary / River / Lagoon"),
+            value: EnvironmentType.estuary,
+            groupValue: _environment,
+            onChanged: (EnvironmentType? val) =>
+                setState(() => _environment = val ?? EnvironmentType.estuary),
+          ),
+          RadioListTile<EnvironmentType>(
+            title: const Text("Offshore / Open Sea"),
+            value: EnvironmentType.offshore,
+            groupValue: _environment,
+            onChanged: (EnvironmentType? val) =>
+                setState(() => _environment = val ?? EnvironmentType.offshore),
           ),
 
           const SizedBox(height: 16),
