@@ -45,5 +45,9 @@ final forecastProvider = FutureProvider.autoDispose
         end: params.end,
       );
 
-      return {...forecast, 'locationName': params.locationName};
+      return {
+        ...forecast,
+        'locationName': params.locationName,
+        'environment': params.environment,
+      };
     });

@@ -1,3 +1,4 @@
+import 'package:anglers_spot/core/models/environment_type.dart';
 import 'package:anglers_spot/features/plan/view/result/helpers/icon_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -24,11 +25,13 @@ class FishingWindowsSection extends StatelessWidget {
 
     if (hours.isEmpty) return const SizedBox.shrink();
 
+    final env = payload['environment'] as EnvironmentType; // or from params
     final windows = calculateBestWindows(
       hours,
       daily,
       astronomy,
       tides,
+      env: env,
     ).where((h) => scoreLabel(h.score) != "Good").toList();
 
     final grouped = groupConsecutiveWindows(windows);

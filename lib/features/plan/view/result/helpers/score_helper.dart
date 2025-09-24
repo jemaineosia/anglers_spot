@@ -1,38 +1,36 @@
+import 'package:anglers_spot/core/models/environment_type.dart';
 import 'package:anglers_spot/features/plan/view/result/helpers/moonphase_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Holds insights about each fishing hour
 class HourInsight {
   final DateTime time;
   final double score;
   HourInsight(this.time, this.score);
 }
 
-/// Calculate best fishing windows based on multiple factors
 List<HourInsight> calculateBestWindows(
   List<Map<String, dynamic>> hours,
   List<Map<String, dynamic>> daily,
   List<Map<String, dynamic>> astronomy,
-  List<Map<String, dynamic>> tides,
-) {
-  // Precompute sunrise/sunset DateTimes
+  List<Map<String, dynamic>> tides, {
+  required EnvironmentType env, // NEW
+}) {
   final sunriseTimes = daily
       .map((d) => DateTime.tryParse(d['sunrise'] ?? ''))
       .whereType<DateTime>()
       .toList();
+
   final sunsetTimes = daily
       .map((d) => DateTime.tryParse(d['sunset'] ?? ''))
       .whereType<DateTime>()
       .toList();
 
-  // Build a quick lookup for astronomy by date (YYYY-MM-DD)
   final Map<String, Map<String, dynamic>> astroByDate = {
     for (final a in astronomy)
       if (a['date'] != null) a['date'] as String: a,
   };
 
-  // Normalize tide events into typed list
   final tideEvents =
       tides
           .map((e) {
@@ -59,20 +57,20 @@ List<HourInsight> calculateBestWindows(
 
     double score = 0.0;
 
-    // 1) Weather (max ~90)
+    // weather
     score += 40 * (1 - (wind.clamp(0, 30) / 30));
     score += 10 * (1 - (gust.clamp(0, 40) / 40));
     score += 30 * (1 - (precip.clamp(0, 100) / 100));
     score += 10 * (1 - ((cloud - 50).abs() / 50));
 
-    // 2) Dawn/Dusk proximity (max +20)
+    // sunrise or sunset proximity
     for (final s in [...sunriseTimes, ...sunsetTimes]) {
       final diff = (t.difference(s).inMinutes).abs();
       if (diff <= 120) score += (120 - diff) / 120 * 20;
     }
 
-    // 3) Moon (phase + moonrise/set)
-    double springBoost = 0.0; // defer until after current strength is known
+    // moon phase and moonrise or moonset
+    double springBoost = 0.0;
     final key =
         '${t.year.toString().padLeft(4, '0')}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
     final astro = astroByDate[key];
@@ -80,28 +78,22 @@ List<HourInsight> calculateBestWindows(
     if (astro != null) {
       final moonPhaseStr = (astro['moon_phase'] ?? 'UNKNOWN').toString();
 
-      // Phase bonus/penalty
       switch (normalizeMoonPhase(moonPhaseStr)) {
         case 'NEW_MOON':
         case 'FULL_MOON':
-          score += 15; // stronger feeding tendency
-          springBoost = 5; // keep a small extra boost for strong currents
+          score += 15;
+          springBoost = 5;
           break;
         case 'QUARTER':
-          score -= 5; // weaker tendency
+          score -= 5;
           break;
         default:
           break;
       }
 
-      // Moonrise / Moonset proximity (each up to +10)
-      String? mr = astro['moonrise']?.toString();
-      String? ms = astro['moonset']?.toString();
-
       DateTime? mkTodayTime(String? hhmm) {
         if (hhmm == null || hhmm.isEmpty) return null;
         try {
-          // ipgeolocation returns "HH:mm" (24h). Adjust if your provider differs.
           final p = DateFormat('HH:mm').parse(hhmm);
           return DateTime(t.year, t.month, t.day, p.hour, p.minute);
         } catch (_) {
@@ -109,7 +101,10 @@ List<HourInsight> calculateBestWindows(
         }
       }
 
-      for (final mTime in [mkTodayTime(mr), mkTodayTime(ms)]) {
+      for (final mTime in [
+        mkTodayTime(astro['moonrise']?.toString()),
+        mkTodayTime(astro['moonset']?.toString()),
+      ]) {
         if (mTime != null) {
           final diff = (t.difference(mTime).inMinutes).abs();
           if (diff <= 90) score += (90 - diff) / 90 * 10;
@@ -117,10 +112,9 @@ List<HourInsight> calculateBestWindows(
       }
     }
 
-    // 4) Tide-driven current strength (+ up to ~15)
+    // tide movement proxy
     double currentScoreForHour = 0.0;
     if (tideEvents.length >= 2) {
-      // Find adjacent pair that bounds 't'
       for (int i = 0; i < tideEvents.length - 1; i++) {
         final t1 = tideEvents[i]['time'] as DateTime;
         final t2 = tideEvents[i + 1]['time'] as DateTime;
@@ -132,15 +126,25 @@ List<HourInsight> calculateBestWindows(
           final diffMinutes = (t2.difference(t1).inMinutes).abs();
           final slope = diffMinutes > 0 ? diffHeight / diffMinutes : 0.0;
 
-          // Heuristic scale → 0..~15
+          // base current score
           currentScoreForHour = (slope * 100.0).clamp(0, 15);
+
+          // environment multiplier
+          currentScoreForHour *= _envCurrentMultiplier(
+            env: env,
+            tideNow: _interpHeightAt(t, t1, h1, t2, h2),
+            tidePrev: h1,
+            tideNext: h2,
+            slope: slope,
+          );
+
           score += currentScoreForHour;
           break;
         }
       }
     }
 
-    // If spring tide + noticeable current, add a small synergy boost
+    // small synergy if spring plus noticeable current
     if (springBoost > 0 && currentScoreForHour > 5) {
       score += springBoost;
     }
@@ -148,19 +152,67 @@ List<HourInsight> calculateBestWindows(
     scored.add(HourInsight(t, score.clamp(0, 100)));
   }
 
-  // Keep time order (your UI does grouping/ranking)
   scored.sort((a, b) => a.time.compareTo(b.time));
   return scored;
 }
 
-/// Label for score ranges
+// environment tide or current emphasis
+double _envCurrentMultiplier({
+  required EnvironmentType env,
+  required double tideNow,
+  required double tidePrev,
+  required double tideNext,
+  required double slope,
+}) {
+  // slope is movement per minute
+  final isSlack = slope < 0.001; // heuristic
+  final isNearHigh = tideNow >= tidePrev && tideNow >= tideNext;
+  final isNearLow = tideNow <= tidePrev && tideNow <= tideNext;
+  final isMidMovement = !isSlack && !isNearHigh && !isNearLow;
+
+  switch (env) {
+    case EnvironmentType.beach:
+      if (isSlack) return 0.8;
+      if (isMidMovement) return 1.0;
+      return 0.9; // exact highs or lows slightly less
+    case EnvironmentType.rocks:
+      if (isNearHigh) return 1.15;
+      if (isSlack) return 0.9;
+      return 1.0;
+    case EnvironmentType.island:
+      if (isMidMovement) return 1.25;
+      if (isSlack || isNearHigh || isNearLow) return 0.8;
+      return 1.0;
+    case EnvironmentType.estuary:
+      if (isMidMovement) return 1.05;
+      return 0.9;
+    case EnvironmentType.offshore:
+      if (slope >= 0.01) return 1.1;
+      return 0.9;
+  }
+}
+
+// linear interpolation of tide height at time t
+double _interpHeightAt(
+  DateTime t,
+  DateTime t1,
+  double h1,
+  DateTime t2,
+  double h2,
+) {
+  final total = t2.difference(t1).inSeconds;
+  if (total <= 0) return h1;
+  final part = t.difference(t1).inSeconds.clamp(0, total);
+  final f = part / total;
+  return h1 + (h2 - h1) * f;
+}
+
 String scoreLabel(double score) {
   if (score >= 85) return "Best";
   if (score >= 70) return "Better";
   return "Good";
 }
 
-/// Color for score ranges
 Color scoreColor(double score) {
   if (score >= 85) return Colors.green;
   if (score >= 70) return Colors.orange;
@@ -176,7 +228,6 @@ class WindowRange {
 
 List<WindowRange> groupConsecutiveWindows(List<HourInsight> hours) {
   if (hours.isEmpty) return [];
-
   List<WindowRange> ranges = [];
   HourInsight first = hours.first;
   DateTime rangeStart = first.time;
@@ -186,24 +237,18 @@ List<WindowRange> groupConsecutiveWindows(List<HourInsight> hours) {
   for (int i = 1; i < hours.length; i++) {
     final h = hours[i];
     final label = scoreLabel(h.score);
-
     final diff = h.time.difference(rangeEnd).inHours;
 
     if (label == currentLabel && diff == 1) {
-      // Continue the range
       rangeEnd = h.time;
     } else {
-      // Save previous range
       ranges.add(WindowRange(rangeStart, rangeEnd, currentLabel));
-      // Start new range
       rangeStart = h.time;
       rangeEnd = h.time;
       currentLabel = label;
     }
   }
 
-  // Add final range
   ranges.add(WindowRange(rangeStart, rangeEnd, currentLabel));
-
   return ranges;
 }
