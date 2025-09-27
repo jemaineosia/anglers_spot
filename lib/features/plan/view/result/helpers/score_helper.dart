@@ -14,7 +14,7 @@ List<HourInsight> calculateBestWindows(
   List<Map<String, dynamic>> daily,
   List<Map<String, dynamic>> astronomy,
   List<Map<String, dynamic>> tides, {
-  required EnvironmentType env, // NEW
+  required EnvironmentType env,
 }) {
   final sunriseTimes = daily
       .map((d) => DateTime.tryParse(d['sunrise'] ?? ''))
@@ -69,7 +69,7 @@ List<HourInsight> calculateBestWindows(
       if (diff <= 120) score += (120 - diff) / 120 * 20;
     }
 
-    // moon phase and moonrise or moonset
+    // moon phase and solunar periods
     double springBoost = 0.0;
     final key =
         '${t.year.toString().padLeft(4, '0')}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
@@ -101,15 +101,40 @@ List<HourInsight> calculateBestWindows(
         }
       }
 
-      for (final mTime in [
-        mkTodayTime(astro['moonrise']?.toString()),
-        mkTodayTime(astro['moonset']?.toString()),
-      ]) {
-        if (mTime != null) {
-          final diff = (t.difference(mTime).inMinutes).abs();
-          if (diff <= 90) score += (90 - diff) / 90 * 10;
+      DateTime? midpoint(DateTime a, DateTime b) {
+        var aMs = a.millisecondsSinceEpoch;
+        var bMs = b.millisecondsSinceEpoch;
+        if (b.isBefore(a)) {
+          bMs += const Duration(days: 1).inMilliseconds;
         }
+        final m = DateTime.fromMillisecondsSinceEpoch(aMs + ((bMs - aMs) ~/ 2));
+        return DateTime(t.year, t.month, t.day, m.hour, m.minute);
       }
+
+      // moonrise, moonset
+      final moonrise = mkTodayTime(astro['moonrise']?.toString());
+      final moonset = mkTodayTime(astro['moonset']?.toString());
+
+      // --- Solunar periods ---
+      final transit =
+          mkTodayTime(astro['moon_transit']?.toString()) ??
+          (moonrise != null && moonset != null
+              ? midpoint(moonrise, moonset)
+              : null);
+      final underfoot =
+          mkTodayTime(astro['moon_underfoot']?.toString()) ??
+          (transit?.add(const Duration(hours: 12)));
+
+      bool within(DateTime? a, int minutes) =>
+          a != null && (t.difference(a).inMinutes).abs() <= minutes;
+
+      // Major periods (±60 min)
+      if (within(transit, 60)) score += 30;
+      if (within(underfoot, 60)) score += 30;
+
+      // Minor periods (±45 min)
+      if (within(moonrise, 45)) score += 10;
+      if (within(moonset, 45)) score += 10;
     }
 
     // tide movement proxy
@@ -164,8 +189,7 @@ double _envCurrentMultiplier({
   required double tideNext,
   required double slope,
 }) {
-  // slope is movement per minute
-  final isSlack = slope < 0.001; // heuristic
+  final isSlack = slope < 0.001;
   final isNearHigh = tideNow >= tidePrev && tideNow >= tideNext;
   final isNearLow = tideNow <= tidePrev && tideNow <= tideNext;
   final isMidMovement = !isSlack && !isNearHigh && !isNearLow;
@@ -174,7 +198,7 @@ double _envCurrentMultiplier({
     case EnvironmentType.beach:
       if (isSlack) return 0.8;
       if (isMidMovement) return 1.0;
-      return 0.9; // exact highs or lows slightly less
+      return 0.9;
     case EnvironmentType.rocks:
       if (isNearHigh) return 1.15;
       if (isSlack) return 0.9;
@@ -192,7 +216,6 @@ double _envCurrentMultiplier({
   }
 }
 
-// linear interpolation of tide height at time t
 double _interpHeightAt(
   DateTime t,
   DateTime t1,

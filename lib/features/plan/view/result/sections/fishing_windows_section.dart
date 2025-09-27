@@ -25,7 +25,9 @@ class FishingWindowsSection extends StatelessWidget {
 
     if (hours.isEmpty) return const SizedBox.shrink();
 
-    final env = payload['environment'] as EnvironmentType; // or from params
+    final env =
+        payload['environment'] as EnvironmentType? ?? EnvironmentType.beach;
+
     final windows = calculateBestWindows(
       hours,
       daily,
