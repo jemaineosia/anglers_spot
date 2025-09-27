@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'features/plan/view/planner_screen.dart';
+import 'features/main/view/main_page.dart'; // <- use MainPage
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,8 +25,9 @@ class AnglersSpotApp extends StatelessWidget {
     return MaterialApp(
       title: 'Anglers Spot',
       navigatorKey: AppNavigator.navigatorKey,
-      theme: ThemeData(useMaterial3: true),
-      home: const PlannerScreen(),
+      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.teal),
+      home:
+          const MainPage(), // <- launch with MainPage instead of PlannerScreen
     );
   }
 }

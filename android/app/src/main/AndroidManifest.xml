@@ -6,6 +6,9 @@
         android:label="anglers_spot"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="YAIzaSyDQjHkSEyIIQp03YL8o5joHBB8ATiuhp9E"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
