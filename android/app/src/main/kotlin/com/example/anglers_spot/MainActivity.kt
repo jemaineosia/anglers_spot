@@ -1,4 +1,4 @@
-package com.skilla.anglers_spot
+package com.example.anglers_spot
 
 import io.flutter.embedding.android.FlutterActivity
 
