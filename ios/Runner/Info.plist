@@ -53,5 +53,11 @@
 	</array>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to take photos and videos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photo library to select and upload images.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to display nearby fishing spots.</string>
 </dict>
 </plist>

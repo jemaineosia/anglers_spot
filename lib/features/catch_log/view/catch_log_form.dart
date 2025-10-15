@@ -213,8 +213,9 @@ class _CatchLogFormState extends ConsumerState<CatchLogForm> {
                     validator: (v) {
                       if (v == null || v.isEmpty) return "Required";
                       final val = double.tryParse(v);
-                      if (val == null || val < -90 || val > 90)
+                      if (val == null || val < -90 || val > 90) {
                         return "Invalid";
+                      }
                       return null;
                     },
                   ),
@@ -228,8 +229,9 @@ class _CatchLogFormState extends ConsumerState<CatchLogForm> {
                     validator: (v) {
                       if (v == null || v.isEmpty) return "Required";
                       final val = double.tryParse(v);
-                      if (val == null || val < -180 || val > 180)
+                      if (val == null || val < -180 || val > 180) {
                         return "Invalid";
+                      }
                       return null;
                     },
                   ),
