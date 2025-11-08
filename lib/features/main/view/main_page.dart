@@ -20,7 +20,7 @@ class _MainPageState extends State<MainPage> {
     ChatListScreen(),
     MarketplaceScreen(),
     CatchLogListPage(),
-    PlannerScreen(), // Renamed from "Plan" to "Forecast"
+    PlannerScreen(),
   ];
 
   @override

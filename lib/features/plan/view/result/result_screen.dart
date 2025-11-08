@@ -12,7 +12,7 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Plan Result')),
+      appBar: AppBar(title: const Text('Forecast Result')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
