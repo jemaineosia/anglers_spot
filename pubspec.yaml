@@ -41,6 +41,7 @@ dependencies:
   logger: ^2.6.1
   lucide_icons: ^0.257.0
   supabase_flutter: ^2.10.1
+  timeago: ^3.7.1
   url_launcher: ^6.3.2
 
 dev_dependencies:

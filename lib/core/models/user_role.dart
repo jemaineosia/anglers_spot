@@ -18,4 +18,5 @@ enum UserRole {
   bool get isAdmin => this == UserRole.admin;
   bool get isAnonymous => this == UserRole.anonymous;
   bool get isRegistered => this == UserRole.user || canModerate;
+  bool get canPost => !isAnonymous; // All registered users can post
 }
