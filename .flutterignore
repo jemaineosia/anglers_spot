@@ -1,0 +1,9 @@
+# Exclude Supabase migration files from Flutter build
+supabase/
+*.sql
+
+# Documentation files
+*.md
+SETUP_GUIDE.md
+PHASE1_SUMMARY.md
+NEXT_STEPS.md

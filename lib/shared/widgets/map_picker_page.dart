@@ -20,6 +20,7 @@ class MapPickerPage extends StatefulWidget {
 class _MapPickerPageState extends State<MapPickerPage> {
   LatLng? _selected;
   String? _placeName;
+  bool _isMapReady = false;
 
   Future<void> _reverseGeocode(LatLng pos) async {
     try {
@@ -65,18 +66,29 @@ class _MapPickerPageState extends State<MapPickerPage> {
             ),
         ],
       ),
-      body: GoogleMap(
-        initialCameraPosition: const CameraPosition(
-          target: LatLng(1.3521, 103.8198), // Singapore center
-          zoom: 11,
-        ),
-        onTap: (pos) {
-          setState(() => _selected = pos);
-          _reverseGeocode(pos);
-        },
-        markers: _selected != null
-            ? {Marker(markerId: const MarkerId("sel"), position: _selected!)}
-            : {},
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: const CameraPosition(
+              target: LatLng(1.3521, 103.8198), // Singapore center
+              zoom: 11,
+            ),
+            onTap: (pos) {
+              setState(() => _selected = pos);
+              _reverseGeocode(pos);
+            },
+            markers: _selected != null
+                ? {Marker(markerId: const MarkerId("sel"), position: _selected!)}
+                : {},
+            onMapCreated: (controller) {
+              setState(() => _isMapReady = true);
+            },
+          ),
+          if (!_isMapReady)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+        ],
       ),
       bottomNavigationBar: _selected != null
           ? Padding(

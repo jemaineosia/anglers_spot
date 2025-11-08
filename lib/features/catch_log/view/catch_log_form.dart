@@ -246,12 +246,14 @@ class _CatchLogFormState extends ConsumerState<CatchLogForm> {
                     icon: const Icon(Icons.map),
                     label: const Text("Pick on Map"),
                     onPressed: () async {
+                      debugPrint('🗺️ Opening map picker...');
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => const MapPickerPage(),
                         ),
                       );
+                      debugPrint('🗺️ Map picker result: $result');
                       if (result != null && result is PickedLocation) {
                         setState(() {
                           _lat.text = result.lat.toStringAsFixed(6);
