@@ -20,7 +20,7 @@
 - **4-Tab Bottom Navigation**: 
   - Chat (placeholder)
   - Community (placeholder)
-  - Catch Log (existing)
+  - Catch Report (existing)
   - Forecast (renamed from Plan Trip)
 - **Profile Access**: Profile button in app bar
 - **Modern UI**: Material Design 3 with NavigationBar
@@ -87,7 +87,7 @@
 ## Next Steps
 
 ### Immediate Priority (Phase 2)
-1. **Update Catch Log**
+1. **Update Catch Report**
    - Add public/private toggle
    - Show visibility indicator
    - Filter by public/private
@@ -162,7 +162,7 @@
 - No push notifications yet
 - No search functionality
 - No admin dashboard yet
-- Catch log public/private toggle not yet added
+- Catch report public/private toggle completed ✅
 
 ## Technical Debt to Address
 

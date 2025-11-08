@@ -13,13 +13,13 @@ class CatchLogListPage extends ConsumerWidget {
     final asyncLogs = ref.watch(catchLogProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("My Catch Logs")),
+      appBar: AppBar(title: const Text("My Catch Reports")),
       body: asyncLogs.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text("Error: $e")),
         data: (logs) {
           if (logs.isEmpty) {
-            return const Center(child: Text("No catches logged yet."));
+            return const Center(child: Text("No catches reported yet."));
           }
 
           return ListView.builder(
@@ -36,9 +36,20 @@ class CatchLogListPage extends ConsumerWidget {
                           fit: BoxFit.cover,
                         )
                       : const Icon(Icons.image_not_supported, size: 40),
-                  title: Text(
-                    log.species,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          log.species,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Icon(
+                        log.isPublic ? Icons.public : Icons.lock_outline,
+                        size: 16,
+                        color: log.isPublic ? Colors.green : Colors.grey,
+                      ),
+                    ],
                   ),
                   subtitle: Text(
                     "${log.locationName ?? 'Unknown location'} • "

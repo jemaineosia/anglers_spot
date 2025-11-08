@@ -32,6 +32,7 @@ class _CatchLogFormState extends ConsumerState<CatchLogForm> {
 
   String? _environment;
   File? _photo;
+  bool _isPublic = true; // Default to public
 
   @override
   void initState() {
@@ -137,8 +138,8 @@ class _CatchLogFormState extends ConsumerState<CatchLogForm> {
       locationName: _locationName.text.trim().isEmpty
           ? null
           : _locationName.text.trim(),
-
       photoUrl: photoUrl,
+      isPublic: _isPublic,
       createdAt: DateTime.now(),
     );
 
@@ -151,7 +152,7 @@ class _CatchLogFormState extends ConsumerState<CatchLogForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Catch Log")),
+      appBar: AppBar(title: const Text("Add Catch Report")),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -291,9 +292,33 @@ class _CatchLogFormState extends ConsumerState<CatchLogForm> {
               label: const Text("Add Photo"),
             ),
             const SizedBox(height: 24),
+
+            // Public/Private Toggle
+            Card(
+              child: SwitchListTile(
+                title: const Text("Share with Community"),
+                subtitle: Text(
+                  _isPublic
+                      ? "This catch will be visible to everyone"
+                      : "Only you can see this catch",
+                  style: TextStyle(
+                    color: _isPublic ? Colors.green : Colors.grey[600],
+                  ),
+                ),
+                value: _isPublic,
+                onChanged: (value) => setState(() => _isPublic = value),
+                secondary: Icon(
+                  _isPublic ? Icons.public : Icons.lock_outline,
+                  color: _isPublic ? Colors.green : Colors.grey,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            const SizedBox(height: 24),
             FilledButton(
               onPressed: _isLocationValid ? _submit : null,
-              child: const Text("Save Log"),
+              child: const Text("Save Report"),
             ),
           ],
         ),

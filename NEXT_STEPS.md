@@ -19,7 +19,7 @@ Congratulations! We've successfully completed **Phase 1** of transforming Angler
 - ✅ Sign out functionality
 
 ### 🧭 Main Navigation
-- ✅ 4-tab navigation (Chat, Community, Catch Log, Forecast)
+- ✅ 4-tab navigation (Chat, Community, Catch Report, Forecast)
 - ✅ Modern Material Design 3 UI
 - ✅ Profile access from app bar
 
@@ -95,26 +95,27 @@ flutter run
 6. **Try Guest Mode** - Use "Continue as Guest" button
 
 ### Test Navigation:
-1. Switch between all 4 tabs (Chat, Community, Catch Log, Forecast)
+1. Switch between all 4 tabs (Chat, Community, Catch Report, Forecast)
 2. Access profile from the app bar
-3. Test existing Catch Log feature
+3. Test existing Catch Report feature
 4. Test existing Forecast (Plan Trip) feature
 
 ## 📋 What to Build Next (Phase 2)
 
-### Priority 1: Update Catch Log (Easiest)
-**Goal**: Add public/private toggle to catch logs
+### Priority 1: Update Catch Report ✅ COMPLETED
+**Goal**: Add public/private toggle to catch reports
 
-**Files to modify:**
-- `lib/features/catch_log/view/catch_log_form.dart` - Add visibility toggle
-- `lib/features/catch_log/view/catch_log_list.dart` - Show visibility icon
-- `lib/features/catch_log/models/catch_log.dart` - Add isPublic field
-- `lib/features/catch_log/providers/catch_log_provider.dart` - Handle visibility
+**Files modified:**
+- `lib/features/catch_log/view/catch_log_form.dart` - Added visibility toggle ✅
+- `lib/features/catch_log/view/catch_log_list.dart` - Shows visibility icon ✅
+- `lib/features/catch_log/view/catch_log_detail.dart` - Shows visibility chip ✅
+- `lib/features/catch_log/models/catch_log.dart` - Added isPublic field ✅
+- `lib/features/catch_log/providers/catch_log_provider.dart` - Handles visibility ✅
 
-**UI Changes:**
-- Add a switch/toggle in catch log form for "Make Public"
-- Show 🌍 or 🔒 icon on each catch log entry
-- Filter to show only your catches or all public catches
+**Features implemented:**
+- Switch toggle in catch report form for "Share with Community" ✅
+- Shows 🌍 or 🔒 icon on each catch report entry ✅
+- Visibility chip in detail view ✅
 
 ### Priority 2: Build Community Feed
 **Goal**: Create social media-style feed
@@ -142,7 +143,7 @@ lib/features/community/
 - Like/unlike posts
 - Comment on posts
 - View post details
-- Link catch logs to posts
+- Link catch reports to posts
 
 ### Priority 3: Implement Follow System
 **Goal**: Allow users to follow each other
@@ -272,7 +273,7 @@ final _pages = const [
 ## 🎯 Success Criteria
 
 You'll know Phase 2 is complete when:
-- ✅ Users can mark catch logs as public/private
+- ✅ Users can mark catch reports as public/private (COMPLETED)
 - ✅ Community feed shows all public posts
 - ✅ Users can create posts with text and images
 - ✅ Users can like and comment on posts
@@ -290,6 +291,11 @@ You'll know Phase 2 is complete when:
 
 ## 🚀 Ready to Continue?
 
-Start with **updating the Catch Log** to add public/private toggle - it's the easiest next step and will help you understand the pattern for integrating with the new database schema.
+The **Catch Report public/private toggle** has been completed! ✅
+
+Next steps:
+1. **Build the Community Feed** - Create the social feed showing public catch reports and user posts
+2. **Implement likes and comments** - Add social interactions
+3. **Add follow system** - Let users follow each other
 
 Good luck and happy coding! 🎣

@@ -48,8 +48,8 @@ CREATE INDEX IF NOT EXISTS catch_logs_is_public_idx ON catch_logs(is_public);
 CREATE INDEX IF NOT EXISTS catch_logs_user_id_created_at_idx ON catch_logs(user_id, created_at DESC);
 
 -- Update catch_logs RLS policies
-DROP POLICY IF EXISTS "Users can view own catch logs" ON catch_logs;
-CREATE POLICY "Users can view public catch logs or own logs"
+DROP POLICY IF EXISTS "Users can view own catch reports" ON catch_logs;
+CREATE POLICY "Users can view public catch reports or own reports"
     ON catch_logs FOR SELECT
     USING (is_public = TRUE OR auth.uid() = user_id);
 
@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS community_posts (
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
     content TEXT NOT NULL,
     media_urls TEXT[], -- Array of media URLs
-    catch_log_id UUID REFERENCES catch_logs(id) ON DELETE SET NULL, -- Link to catch log if it's a catch post
+    catch_log_id UUID REFERENCES catch_logs(id) ON DELETE SET NULL, -- Link to catch report if it's a catch post
     likes_count INTEGER DEFAULT 0,
     comments_count INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),

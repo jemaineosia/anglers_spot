@@ -14,7 +14,7 @@ A Flutter-based community app for anglers to connect, share catches, chat, and c
 - **Main Navigation**
   - Chat (placeholder - coming soon)
   - Community (placeholder - coming soon)
-  - Catch Log
+  - Catch Report
   - Forecast (weather and fishing conditions)
 
 - **Profile Management**
@@ -25,7 +25,7 @@ A Flutter-based community app for anglers to connect, share catches, chat, and c
 ### 🚧 Coming Soon
 - Community feed with posts, likes, and comments
 - Real-time chat with multiple channels
-- Public/private catch logs
+- Public/private catch reports
 - Admin moderation tools
 - Follow/unfollow users
 - Post notifications
@@ -155,7 +155,7 @@ flutter run
 - [x] Database schema
 
 ### Phase 2: Community Features (In Progress)
-- [ ] Public/private catch logs
+- [x] Public/private catch reports
 - [ ] Community feed
 - [ ] Post creation with media
 - [ ] Likes and comments

@@ -35,12 +35,38 @@ class CatchLogDetailPage extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Species + location
-          Text(log.species, style: Theme.of(context).textTheme.headlineSmall),
-          if (log.locationName != null)
-            Text(
-              log.locationName!,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      log.species,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    if (log.locationName != null)
+                      Text(
+                        log.locationName!,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                  ],
+                ),
+              ),
+              Chip(
+                avatar: Icon(
+                  log.isPublic ? Icons.public : Icons.lock_outline,
+                  size: 18,
+                  color: log.isPublic ? Colors.green : Colors.grey,
+                ),
+                label: Text(log.isPublic ? "Public" : "Private"),
+                backgroundColor: log.isPublic
+                    ? Colors.green.shade50
+                    : Colors.grey.shade100,
+              ),
+            ],
+          ),
 
           const Divider(height: 32),
 

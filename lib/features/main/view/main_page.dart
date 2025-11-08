@@ -41,7 +41,7 @@ class _MainPageState extends State<MainPage> {
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.fish),
-            label: "Catch Log",
+            label: "Catch Report",
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.cloudSun),

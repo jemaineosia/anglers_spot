@@ -11,6 +11,8 @@ class CatchLog {
   final double? lon;
   final String? locationName;
   final String? photoUrl;
+  final bool isPublic; // Whether the catch is visible to the community
+  final int likesCount; // Number of likes from other users
   final DateTime createdAt;
 
   CatchLog({
@@ -26,6 +28,8 @@ class CatchLog {
     this.lon,
     this.locationName,
     this.photoUrl,
+    this.isPublic = true, // Default to public
+    this.likesCount = 0,
     required this.createdAt,
   });
 
@@ -42,6 +46,8 @@ class CatchLog {
     lon: (json['lon'] as num?)?.toDouble(),
     locationName: json['location_name'] as String?,
     photoUrl: json['photo_url'] as String?,
+    isPublic: (json['is_public'] as bool?) ?? true,
+    likesCount: (json['likes_count'] as int?) ?? 0,
     createdAt: DateTime.parse(json['created_at'] as String),
   );
 
@@ -56,5 +62,7 @@ class CatchLog {
     'lon': lon,
     'location_name': locationName,
     'photo_url': photoUrl,
+    'is_public': isPublic,
+    'likes_count': likesCount,
   };
 }
