@@ -40,16 +40,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context).pop(); // Return to previous screen
+        // Invalidate auth state to force refresh
+        ref.invalidate(authStateProvider);
+
+        // Pop all auth screens and return to root
+        // The AuthWrapper will detect the auth state and show MainPage
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign in failed: ${e.toString()}')),
         );
-      }
-    } finally {
-      if (mounted) {
         setState(() => _isLoading = false);
       }
     }

@@ -67,6 +67,46 @@ class ChatService {
     return ChatChannel.fromJson(response);
   }
 
+  /// Get all channels including inactive (admin only)
+  Stream<List<ChatChannel>> getAllChannelsStream() {
+    return _supabase
+        .from('chat_channels')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .map((channels) {
+          return channels.map((json) => ChatChannel.fromJson(json)).toList();
+        });
+  }
+
+  /// Update channel details (admin only)
+  Future<void> updateChannel({
+    required String channelId,
+    required String name,
+    String? description,
+  }) async {
+    await _supabase
+        .from('chat_channels')
+        .update({'name': name, 'description': description})
+        .eq('id', channelId);
+  }
+
+  /// Toggle channel active status (admin only)
+  Future<void> toggleChannelActive(String channelId, bool isActive) async {
+    await _supabase
+        .from('chat_channels')
+        .update({'is_active': isActive})
+        .eq('id', channelId);
+  }
+
+  /// Delete channel and all its messages (admin only)
+  Future<void> deleteChannel(String channelId) async {
+    // Delete all messages in the channel first
+    await _supabase.from('chat_messages').delete().eq('channel_id', channelId);
+
+    // Then delete the channel
+    await _supabase.from('chat_channels').delete().eq('id', channelId);
+  }
+
   // ============= MESSAGES =============
 
   /// Get messages for a channel

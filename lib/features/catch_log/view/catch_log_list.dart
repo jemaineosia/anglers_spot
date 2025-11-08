@@ -13,7 +13,6 @@ class CatchLogListPage extends ConsumerWidget {
     final asyncLogs = ref.watch(catchLogProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("My Catch Reports")),
       body: asyncLogs.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text("Error: $e")),

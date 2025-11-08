@@ -19,19 +19,6 @@ class MarketplaceScreen extends ConsumerWidget {
     final canPost = userProfile?.role.canPost ?? false;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Marketplace'),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.search),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Search coming soon')),
-              );
-            },
-          ),
-        ],
-      ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(marketplaceItemsStreamProvider);

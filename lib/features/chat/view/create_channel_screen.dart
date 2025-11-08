@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../auth/providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
 
 class CreateChannelScreen extends ConsumerStatefulWidget {
@@ -56,6 +57,30 @@ class _CreateChannelScreenState extends ConsumerState<CreateChannelScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProfile = ref.watch(userProfileProvider).value;
+    final isAdmin = userProfile?.role.isAdmin ?? false;
+
+    // Check if user is admin
+    if (!isAdmin) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Create Channel')),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 64, color: Colors.red),
+              SizedBox(height: 16),
+              Text(
+                'Only administrators can create channels',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Create Channel')),
       body: Form(

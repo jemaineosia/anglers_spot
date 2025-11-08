@@ -54,16 +54,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.of(context).pop(); // Return to welcome screen
+
+        // Invalidate auth state to force refresh
+        ref.invalidate(authStateProvider);
+
+        // Pop all auth screens and return to root
+        // The auth state change will trigger a rebuild and navigate automatically
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign up failed: ${e.toString()}')),
         );
-      }
-    } finally {
-      if (mounted) {
         setState(() => _isLoading = false);
       }
     }

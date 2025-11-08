@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../admin/view/admin_dashboard_screen.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -91,6 +92,44 @@ class ProfileScreen extends ConsumerWidget {
                       : Colors.teal[100],
                 ),
                 const SizedBox(height: 24),
+
+                // Admin/Moderator dashboard button
+                if (profile.role.canModerate)
+                  Card(
+                    color: profile.role.isAdmin
+                        ? Colors.purple.shade50
+                        : Colors.blue.shade50,
+                    child: ListTile(
+                      leading: Icon(
+                        profile.role.isAdmin
+                            ? LucideIcons.shield
+                            : LucideIcons.shieldCheck,
+                        color: profile.role.isAdmin
+                            ? Colors.purple
+                            : Colors.blue,
+                      ),
+                      title: Text(
+                        profile.role.isAdmin
+                            ? 'Admin Dashboard'
+                            : 'Moderator Dashboard',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        profile.role.isAdmin
+                            ? 'Manage users and platform'
+                            : 'Moderate content',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const AdminDashboardScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                if (profile.role.canModerate) const SizedBox(height: 16),
 
                 // Bio
                 if (profile.bio != null) ...[
@@ -242,6 +281,15 @@ class ProfileScreen extends ConsumerWidget {
 
                     if (confirm == true && context.mounted) {
                       await authService.signOut();
+                      if (context.mounted) {
+                        // Invalidate auth state to trigger AuthWrapper rebuild
+                        ref.invalidate(authStateProvider);
+                        // Navigate to root to let AuthWrapper show WelcomeScreen
+                        Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        ).popUntil((route) => route.isFirst);
+                      }
                     }
                   },
                   icon: const Icon(Icons.logout),

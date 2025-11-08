@@ -154,7 +154,6 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
               '${_range!.end.toLocal().toString().split(' ').first}';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Weather Forecast')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

@@ -16,15 +16,11 @@ class ChatListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final channelsAsync = ref.watch(chatChannelsStreamProvider);
     final userProfile = ref.watch(userProfileProvider).value;
-    final canCreateChannel = userProfile?.role.canModerate ?? false;
+    final canCreateChannel = userProfile?.role.isAdmin ?? false;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chat'),
-        actions: [
-          if (canCreateChannel)
-            IconButton(
-              icon: const Icon(LucideIcons.plus),
+      floatingActionButton: canCreateChannel
+          ? FloatingActionButton(
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -32,9 +28,9 @@ class ChatListScreen extends ConsumerWidget {
                   ),
                 );
               },
-            ),
-        ],
-      ),
+              child: const Icon(LucideIcons.plus),
+            )
+          : null,
       body: channelsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
